@@ -17,9 +17,6 @@ from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 
 load_dotenv()
-import streamlit as st
-for k, v in st.secrets.items():
-    os.environ.setdefault(k, v)
 
 
 # ─── LLM selector ────────────────────────────────────────────
@@ -89,6 +86,7 @@ def make_question_generator_chain():
     template = """You are an expert technical interviewer and HR coach.
 Generate a structured set of interview questions for the given job.
 Mix different types: Behavioral, Technical, Situational, and HR questions.
+IMPORTANT: Generate all questions, tips, and text in {language} language.
 
 OUTPUT FORMAT:
 {format_instructions}
@@ -99,12 +97,13 @@ Job Title: {job_title}
 Experience Level: {experience_level}
 Focus Areas: {focus_areas}
 Number of Questions: {num_questions}
+Language: {language}
 
 Generate diverse, realistic interview questions that a top company would ask."""
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=["job_title", "experience_level", "focus_areas", "num_questions"],
+        input_variables=["job_title", "experience_level", "focus_areas", "num_questions", "language"],
         partial_variables={"format_instructions": fmt},
     )
 
@@ -120,6 +119,7 @@ def make_answer_evaluator_chain():
 
     template = """You are a strict but fair interview coach evaluating a candidate's answer.
 Score based on clarity, relevance, depth, and use of concrete examples.
+IMPORTANT: Write all feedback, strengths, improvements, and ideal answer in {language} language.
 
 OUTPUT FORMAT:
 {format_instructions}
@@ -129,6 +129,7 @@ IMPORTANT: Respond ONLY with valid JSON matching the schema above. No extra text
 Job Title: {job_title}
 Interview Question: {question}
 Question Category: {category}
+Language: {language}
 
 Candidate's Answer:
 {answer}
@@ -137,7 +138,7 @@ Evaluate this answer thoroughly."""
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=["job_title", "question", "category", "answer"],
+        input_variables=["job_title", "question", "category", "answer", "language"],
         partial_variables={"format_instructions": fmt},
     )
 
@@ -153,6 +154,7 @@ def make_session_summary_chain():
 
     template = """You are a career coach providing a comprehensive interview performance review.
 Analyze all Q&A pairs and individual scores to give honest, actionable feedback.
+IMPORTANT: Write the entire summary, recommendations, and next steps in {language} language.
 
 OUTPUT FORMAT:
 {format_instructions}
@@ -161,6 +163,7 @@ IMPORTANT: Respond ONLY with valid JSON matching the schema above. No extra text
 
 Job Title: {job_title}
 Experience Level: {experience_level}
+Language: {language}
 
 Full Interview Session:
 {session_data}
@@ -171,7 +174,7 @@ Provide a comprehensive performance summary with actionable next steps."""
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=["job_title", "experience_level", "session_data", "scores"],
+        input_variables=["job_title", "experience_level", "session_data", "scores", "language"],
         partial_variables={"format_instructions": fmt},
     )
 
